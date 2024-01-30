@@ -3,7 +3,6 @@
 <head>
     <title>PROYECTO UNO</title>
     <script>
-       
         var sceneList = [];
         var currentFrameNumber = 0;
 
@@ -11,11 +10,23 @@
             this.x = x;
             this.y = y;
             this.color = color;
-            this.draw = function(ctx) {
+            this.velocity = { x: 0, y: 0 };
+        }
+
+        // Rectangle Prototype
+        var RectanglePrototype = {
+            update: function() {
+                this.velocity.y += 1;
+                this.y += this.velocity.y * 0.16;
+            },
+            draw: function(ctx) {
                 ctx.fillStyle = this.color;
                 ctx.fillRect(this.x, this.y, 50, 50);
-            };
-        }
+            }
+        };
+
+        // Set Rectangle to inherit from RectanglePrototype
+        Rectangle.prototype = RectanglePrototype;
 
         function updateStats() {
             var frameCountP = document.getElementById("frameCount");
@@ -30,44 +41,42 @@
     if (myCanvas.getContext) {
         var ctx = myCanvas.getContext("2d");
         ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
-        
-        
+
         var randomX = Math.random() * (myCanvas.width - 50);
         var randomY = Math.random() * (myCanvas.height - 50);
-        
-        // Generate a random color
         var randomColor = "rgb(" + 
             Math.floor(Math.random() * 256) + "," + 
             Math.floor(Math.random() * 256) + "," + 
             Math.floor(Math.random() * 256) + ")";
-        
-        
         sceneList.push(new Rectangle(randomX, randomY, randomColor));
 
-        
+        // Remove rectangles that have moved off the screen
+        for (var i = sceneList.length - 1; i >= 0; i--) {
+            if (sceneList[i].y > myCanvas.height) {
+                sceneList.splice(i, 1);
+            }
+        }
+
         for (var i = 0; i < sceneList.length; i++) {
+            sceneList[i].update();  
             sceneList[i].draw(ctx);
         }
     }
-    
+
     currentFrameNumber++;
     updateStats(); 
     requestAnimationFrame(updateAndDraw);
 }
 
-
         function init() {
             console.log("Hello World!");
-            sceneList.push(new Rectangle(20, 20, "rgb(0, 255, 0)"));
-            sceneList.push(new Rectangle(80, 20, "rgb(0, 255, 0)"));
-            sceneList.push(new Rectangle(140, 20, "rgb(0, 255, 0)"));
             requestAnimationFrame(updateAndDraw);
         }
     </script>
 </head>
 <body onload="init()">
     <canvas id="myCanvas" width="300" height="200" style="border:1px solid gray;"></canvas>
-    <p id="frameCount">Frame Count: 0</p> <!-- Added id -->
-    <p id="rectangleCount">Rectangle Count: 0</p> <!-- Added id -->
+    <p id="frameCount">Frame Count: 0</p>
+    <p id="rectangleCount">Rectangle Count: 0</p>
 </body>
 </html>
