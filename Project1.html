@@ -1,32 +1,68 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>PROYECTO UNO</title>
+    <title>PROYECTO UNO - Spiral Effect</title>
     <script>
         var sceneList = [];
         var currentFrameNumber = 0;
 
-        function Rectangle(x, y, color) {
+        function Rectangle(x, y, color, angle, speed, radius) {
             this.x = x;
             this.y = y;
             this.color = color;
-            this.velocity = { x: 0, y: 0 };
+            this.angle = angle;
+            this.speed = speed;
+            this.radius = radius;
+
+            this.update = function() {
+                // Spiral motion logic
+                this.angle += this.speed;
+                this.x += Math.cos(this.angle) * this.radius;
+                this.y += Math.sin(this.angle) * this.radius;
+                this.radius += 0.1; // Slowly increase the radius
+            };
+
+            this.draw = function(ctx) {
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, this.y, 10, 10); // Smaller size for spiral effect
+            };
         }
 
         // Rectangle Prototype
         var RectanglePrototype = {
-            update: function() {
-                this.velocity.y += 1;
-                this.y += this.velocity.y * 0.16;
-            },
-            draw: function(ctx) {
-                ctx.fillStyle = this.color;
-                ctx.fillRect(this.x, this.y, 50, 50);
-            }
+            update: Rectangle.prototype.update,
+            draw: Rectangle.prototype.draw
         };
-
-        // Set Rectangle to inherit from RectanglePrototype
         Rectangle.prototype = RectanglePrototype;
+
+        function updateAndDraw() {
+            var myCanvas = document.getElementById("myCanvas");
+            if (myCanvas.getContext) {
+                var ctx = myCanvas.getContext("2d");
+                ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
+
+                // Add a new particle to each spiral on each frame
+                sceneList.push(new Rectangle(150, 100, randomColor(), 0, 0.02, 1));    // Spiral 1
+                sceneList.push(new Rectangle(150, 100, randomColor(), Math.PI/4, 0.02, 1)); // Spiral 2
+                sceneList.push(new Rectangle(150, 100, randomColor(), Math.PI/2, 0.02, 1));  // Spiral 3
+
+                for (var i = sceneList.length - 1; i >= 0; i--) {
+                    sceneList[i].update();  
+                    sceneList[i].draw(ctx);
+                }
+            }
+
+            currentFrameNumber++;
+            updateStats(); 
+            requestAnimationFrame(updateAndDraw);
+        }
+
+        function randomColor() {
+            return "rgb(" + 
+                Math.floor(Math.random() * 256) + "," + 
+                Math.floor(Math.random() * 256) + "," + 
+                Math.floor(Math.random() * 256) + ")";
+        }
 
         function updateStats() {
             var frameCountP = document.getElementById("frameCount");
@@ -35,38 +71,6 @@
             var rectangleCountP = document.getElementById("rectangleCount");
             rectangleCountP.innerText = "Rectangles Count: " + sceneList.length;
         }
-
-        function updateAndDraw() {
-    var myCanvas = document.getElementById("myCanvas");
-    if (myCanvas.getContext) {
-        var ctx = myCanvas.getContext("2d");
-        ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
-
-        var randomX = Math.random() * (myCanvas.width - 50);
-        var randomY = Math.random() * (myCanvas.height - 50);
-        var randomColor = "rgb(" + 
-            Math.floor(Math.random() * 256) + "," + 
-            Math.floor(Math.random() * 256) + "," + 
-            Math.floor(Math.random() * 256) + ")";
-        sceneList.push(new Rectangle(randomX, randomY, randomColor));
-
-        // Remove rectangles that have moved off the screen
-        for (var i = sceneList.length - 1; i >= 0; i--) {
-            if (sceneList[i].y > myCanvas.height) {
-                sceneList.splice(i, 1);
-            }
-        }
-
-        for (var i = 0; i < sceneList.length; i++) {
-            sceneList[i].update();  
-            sceneList[i].draw(ctx);
-        }
-    }
-
-    currentFrameNumber++;
-    updateStats(); 
-    requestAnimationFrame(updateAndDraw);
-}
 
         function init() {
             console.log("Hello World!");
